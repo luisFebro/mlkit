@@ -5,19 +5,23 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 }
 
 function runAnalysis() {
-    const testSetSize = 10; // ADVICE: do not put this number too high if your computer is shitty, maximum like 50.
-    const [testSet, trainingSet] = splitDataSet(outputs, testSetSize);
-    // testSet the first chunk of data limit by testSetSize;
-    // trainingSet - the whole other data: 720
+    const testSetSize = 50; // ADVICE: do not put this number too high if your computer is shitty, maximum like 50.
+    const k = 10;
 
-    _.range(1, 15).forEach(k => { // last number (15) is not inclusive.
+    // testSet the first chunk of data limit by testSetSize;
+    // trainingSet - the whole other data
+
+    _.range(0, 3).forEach(feature => { // last number (3) is not inclusive.
+        const data = _.map(outputs, row => [row[feature], _.last(row)]);
+        const [testSet, trainingSet] = splitDataSet(minMax(data, 1), testSetSize);
+
         const accuracy = _.chain(testSet) //  n1 refactored from
-            .filter(testPoint => getKnn(trainingSet, { predictPoints: ._initial(testPoint), k }) === testPoint[3]) // testPoint[3] === bucket
+            .filter(testPoint => getKnn(trainingSet, { predictPoints: _.initial(testPoint), k }) === _.last(testPoint))
             .size()
             .divide(testSetSize)
             .value()
 
-        console.log("for each K", k ,"Accuracy: ", accuracy);
+        console.log("for each feature", feature ,"Accuracy: ", accuracy);
     })
 }
 
@@ -39,8 +43,8 @@ function getKnn(data, options = {}) {
 
     return _.chain(data)
         .map(row => {
-            const features = _.initial(row),
-            const label = _.last(row),
+            const features = _.initial(row);
+            const label = _.last(row);
 
             return [
                 getDistance(features, predictPoints),
@@ -61,13 +65,35 @@ function getKnn(data, options = {}) {
 // pointB - predictionPoint
 function getDistance(pointA, pointB) {
     // For 3D multi dimensional (features) KNN.
-    // tythagorean theorem: C² = A² + B²
+    // pythagorean theorem: C² = A² + B²
     return _.chain(pointA)
         .zip(pointB) // n2
         .map(([a, b]) => (a - b) ** 2)
         .sum()
         .value() ** 0.5; // ** .5 generates the square root
 }
+
+// labels are never normalized.
+// This is for normalization. generate numbers from 0 to 1.0
+// the highest number will be 1. the lowest 0.
+// n3. usage
+function minMax(data, featureCount) {
+    const clonedData = _.cloneDeep(data);
+
+    for(let i = 0; i < featureCount; i++) {
+        const column = clonedData.map(row => row[i]); // each column of feature: drop pos, bounceness, ball size
+        const min = _.min(column);
+        const max = _.max(column);
+
+        // applying to each column the normalization result:
+        for(let j = 0; j < clonedData.length; j++) {
+            clonedData[j][i] = (clonedData[j][i] - min) / (max - min);
+        }
+    }
+
+    return clonedData;
+}
+
 // END HELPERS
 
 
@@ -89,4 +115,16 @@ a= [10, 20];
 b = [1, 2];
 zip == [[10, 1], [20, 2]]
 This is to calculate the pythagorean theorem
+
+n3:
+const data = [
+  [50, 2],
+  [25, 2],
+  [10, 3],
+];
+output:
+0: (2) [1, 2]
+1: (2) [0.375, 2]
+2: (2) [0, 3]
+
 */
