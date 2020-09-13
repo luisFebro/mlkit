@@ -73,6 +73,7 @@ function getDistance(pointA, pointB) {
         .value() ** 0.5; // ** .5 generates the square root
 }
 
+// MIN-MAX NORMALIZATION
 // labels are never normalized.
 // This is for normalization. generate numbers from 0 to 1.0
 // the highest number will be 1. the lowest 0.
@@ -87,7 +88,7 @@ function minMax(data, featureCount) {
 
         // applying to each column the normalization result:
         for(let j = 0; j < clonedData.length; j++) {
-            clonedData[j][i] = (clonedData[j][i] - min) / (max - min);
+            clonedData[j][i] = (clonedData[j][i] - min) / (max - min); // n5 formula
         }
     }
 
@@ -126,5 +127,8 @@ output:
 0: (2) [1, 2]
 1: (2) [0.375, 2]
 2: (2) [0, 3]
+
+n5:
+X (new) = (X - Xmin) / (Xmax - Xmin)
 
 */
